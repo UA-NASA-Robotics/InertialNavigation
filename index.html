@@ -1,0 +1,56 @@
+<html>
+    <canvas id="myCanvas"></canvas>
+<script>
+var cnvs = document.getElementById("myCanvas");
+cnvs.width = window.innerWidth;
+cnvs.height = window.innerHeight;
+var ctx = cnvs.getContext("2d");
+
+window.screen.orientation.lock("portrait"); 
+
+// vars
+var rX; // rotation
+var rY;
+var rZ;
+
+var x;  // position
+var y;
+var z;
+
+
+function accelerometerUpdate(e) {
+    var accel = e.accelerationIncludingGravity;
+    var gyro = e.rotationRate;
+    var deltaTime = e.interval; 
+
+    //The following two lines are to calculate tilt from grav vector.
+    // var xPosition = Math.atan2(aY, aZ);
+    // var yPosition = Math.atan2(aX, aZ);
+    // ctx.fillText("tilt x: " + xPosition, 20, 200);
+    // ctx.fillText("tilt y: " + yPosition, 20, 240);
+
+    ctx.clearRect(0, 0, cnvs.width, cnvs.height);
+    ctx.font = "40px Arial";
+    ctx.fillText("aX: " + accel.x, 20, 40);
+    ctx.fillText("aY: " + accel.y, 20, 80);
+    ctx.fillText("aZ: " + accel.z, 20, 120);
+
+    ctx.fillText("aX: " + accel.x, 20, 40);
+    ctx.fillText("aY: " + accel.y, 20, 80);
+    ctx.fillText("aZ: " + accel.z, 20, 120);    
+}
+
+
+//================ Event listeners ===============================
+
+if (window.DeviceMotionEvent == undefined) {
+    //No accelerometer is present. Use buttons. 
+    alert("no accelerometer");
+}
+else {
+    alert("accelerometer found");
+    window.addEventListener("devicemotion", accelerometerUpdate, true);
+}
+
+</script>
+</html>
