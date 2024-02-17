@@ -17,11 +17,21 @@ var x;  // position
 var y;
 var z;
 
+// round the data from the IMU
+function roundData(data) {
+    data.x = Math.round(data.x * 100) / 100;
+    data.y = Math.round(data.y * 100) / 100;
+    data.z = Math.round(data.z * 100) / 100;
+}
 
 function accelerometerUpdate(e) {
+    // Note: these seem to only have 2 digits of precision
     var accel = e.accelerationIncludingGravity;
     var gyro = e.rotationRate;
     var deltaTime = e.interval; 
+
+    accel = roundData(accel);
+    gyro = roundData(gyro);
 
     //The following two lines are to calculate tilt from grav vector.
     // var xPosition = Math.atan2(aY, aZ);
@@ -35,9 +45,9 @@ function accelerometerUpdate(e) {
     ctx.fillText("aY: " + accel.y, 20, 80);
     ctx.fillText("aZ: " + accel.z, 20, 120);
 
-    ctx.fillText("aX: " + accel.x, 20, 40);
-    ctx.fillText("aY: " + accel.y, 20, 80);
-    ctx.fillText("aZ: " + accel.z, 20, 120);    
+    ctx.fillText("gX: " + gyro.x, 20, 160);
+    ctx.fillText("gY: " + gyro.y, 20, 200);
+    ctx.fillText("gZ: " + gyro.z, 20, 240);    
 }
 
 
