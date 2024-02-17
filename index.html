@@ -31,7 +31,7 @@ function accelerometerUpdate(e) {
     var deltaTime = e.interval; 
 
     accel = roundData(accel);
-    gyro = roundData(gyro);
+    // gyro = roundData(gyro);
 
     //The following two lines are to calculate tilt from grav vector.
     // var xPosition = Math.atan2(aY, aZ);
@@ -45,9 +45,9 @@ function accelerometerUpdate(e) {
     ctx.fillText("aY: " + accel.y, 20, 80);
     ctx.fillText("aZ: " + accel.z, 20, 120);
 
-    ctx.fillText("gX: " + gyro.beta, 20, 160);
-    ctx.fillText("gY: " + gyro.gamma, 20, 200);
-    ctx.fillText("gZ: " + gyro.alpha, 20, 240);    
+    // ctx.fillText("gX: " + gyro.beta, 20, 160);
+    // ctx.fillText("gY: " + gyro.gamma, 20, 200);
+    // ctx.fillText("gZ: " + gyro.alpha, 20, 240);    
 }
 
 
