@@ -19,8 +19,8 @@ var z;
 
 // round the data from the IMU
 function roundData(data) {
-    for (p in data) {
-        data.p = Math.round(data.p * 100) / 100;
+    for (var p in data) {
+        data[p] = Math.round(data[p] * 100) / 100;
     }
 }
 
