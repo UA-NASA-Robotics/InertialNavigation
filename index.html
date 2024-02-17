@@ -19,19 +19,26 @@ var z;
 
 // round the data from the IMU
 function roundData(data) {
-    for (var p in data) {
-        data[p] = Math.round(data[p] * 100) / 100;
+    var tmp = {};
+
+    for (const p in data) {
+        tmp[p] = Math.round(data[p] * 100) / 100;
     }
+
+    return tmp;
 }
 
 function accelerometerUpdate(e) {
+    ctx.clearRect(0, 0, cnvs.width, cnvs.height);
+
     // Note: these seem to only have 2 digits of precision
+    // clone objects because event data read only 
     var accel = e.accelerationIncludingGravity;
     var gyro = e.rotationRate;
     var deltaTime = e.interval; 
 
     accel = roundData(accel);
-    // gyro = roundData(gyro);
+    gyro = roundData(gyro);
 
     //The following two lines are to calculate tilt from grav vector.
     // var xPosition = Math.atan2(aY, aZ);
@@ -39,15 +46,14 @@ function accelerometerUpdate(e) {
     // ctx.fillText("tilt x: " + xPosition, 20, 200);
     // ctx.fillText("tilt y: " + yPosition, 20, 240);
 
-    ctx.clearRect(0, 0, cnvs.width, cnvs.height);
     ctx.font = "40px Arial";
     ctx.fillText("aX: " + accel.x, 20, 40);
     ctx.fillText("aY: " + accel.y, 20, 80);
     ctx.fillText("aZ: " + accel.z, 20, 120);
 
-    // ctx.fillText("gX: " + gyro.beta, 20, 160);
-    // ctx.fillText("gY: " + gyro.gamma, 20, 200);
-    // ctx.fillText("gZ: " + gyro.alpha, 20, 240);    
+    ctx.fillText("gX: " + gyro.beta, 20, 160);
+    ctx.fillText("gY: " + gyro.gamma, 20, 200);
+    ctx.fillText("gZ: " + gyro.alpha, 20, 240);    
 }
 
 
