@@ -9,13 +9,21 @@ var ctx = cnvs.getContext("2d");
 window.screen.orientation.lock("portrait"); 
 
 // vars
-var rX; // rotation
-var rY;
-var rZ;
+var rX = 0; // rotation in rads
+var rY = 0;
+var rZ = 0;
 
 var x;  // position
 var y;
 var z;
+
+var stepPrintY = 40;
+var printY = stepPrintY;
+function printData(context, label, data) {
+    ctx.font = "40px Arial";
+    context.fillText(label + data, 20, printY);
+    printY += stepPrintY;
+}
 
 // round the data from the IMU
 function roundData(data) {
@@ -28,8 +36,26 @@ function roundData(data) {
     return tmp;
 }
 
+function degreesToRads(data) {
+    var tmp = {};
+
+    for (const p in data) {
+        tmp[p] = data[p] * Math.PI / 180;
+    }
+
+    return tmp;
+}
+
+// trackRotation takes the gyro data in radians and interval (delta time in milliseconds)
+function trackRotation(g, dt) {
+    rX += g.beta * dt/1000;
+    rY += g.gamma * dt/1000;
+    rZ += g.alpha * dt/1000;
+}
+
 function accelerometerUpdate(e) {
     ctx.clearRect(0, 0, cnvs.width, cnvs.height);
+    printY = stepPrintY;
 
     // Note: these seem to only have 2 digits of precision
     // clone objects because event data read only 
@@ -39,6 +65,9 @@ function accelerometerUpdate(e) {
 
     accel = roundData(accel);
     gyro = roundData(gyro);
+    gyro = degreesToRads(gyro);
+
+    trackRotation(gyro, deltaTime);
 
     //The following two lines are to calculate tilt from grav vector.
     // var xPosition = Math.atan2(aY, aZ);
@@ -46,14 +75,19 @@ function accelerometerUpdate(e) {
     // ctx.fillText("tilt x: " + xPosition, 20, 200);
     // ctx.fillText("tilt y: " + yPosition, 20, 240);
 
-    ctx.font = "40px Arial";
-    ctx.fillText("aX: " + accel.x, 20, 40);
-    ctx.fillText("aY: " + accel.y, 20, 80);
-    ctx.fillText("aZ: " + accel.z, 20, 120);
+    printData(ctx, "aX: ", accel.x);
+    printData(ctx, "aY: ", accel.y);
+    printData(ctx, "aZ: ", accel.z);
 
-    ctx.fillText("gX: " + gyro.beta, 20, 160);
-    ctx.fillText("gY: " + gyro.gamma, 20, 200);
-    ctx.fillText("gZ: " + gyro.alpha, 20, 240);    
+    // printData(ctx, "gX: ", gyro.beta);
+    // printData(ctx, "gY: ", gyro.gamma);
+    // printData(ctx, "gZ: ", gyro.alpha);
+
+    printData(ctx, "dt: ", deltaTime);
+
+    printData(ctx, "rX: ", rX);
+    printData(ctx, "rY: ", rY);
+    printData(ctx, "rZ: ", rZ);
 }
 
 
