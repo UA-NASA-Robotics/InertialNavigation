@@ -15,6 +15,10 @@ class vector3 {
     this.y = y;
     this.z = z;
   }
+
+  mag() {
+    return Math.sqrt(this.x ** 2 + this.y ** 2 + this.z ** 2);
+  }
 }
 
 // vars
@@ -120,10 +124,9 @@ function accelerometerUpdate(e) {
         return;
     }
 
-    printData(ctx, "Gravity Vector: ", grav);
+    printData(ctx, "Grav Vector: ", roundData(grav));
+    printData(ctx, "Grav Magnitude: ", grav.mag());
 
-    accel = roundData(accel);
-    gyro = roundData(gyro);
     gyro = degreesToRads(gyro);
 
     trackRotation(gyro, deltaTime);
@@ -135,7 +138,7 @@ function accelerometerUpdate(e) {
     // ctx.fillText("tilt x: " + xPosition, 20, 200);
     // ctx.fillText("tilt y: " + yPosition, 20, 240);
 
-    printData(ctx, "Accel: ", accel);
+    printData(ctx, "Accel: ", roundData(accel));
 
     // printData(ctx, "gX: ", gyro.beta);
     // printData(ctx, "gY: ", gyro.gamma);
@@ -143,7 +146,7 @@ function accelerometerUpdate(e) {
 
     printData(ctx, "dt: ", deltaTime);
 
-    printData(ctx, "Rotation: ", rot);
+    printData(ctx, "Rotation: ", roundData(rot));
 }
 
 
