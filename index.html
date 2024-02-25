@@ -10,15 +10,50 @@ var ctx = cnvs.getContext("2d");
 window.screen.orientation.lock("portrait"); 
 
 class vector3 {
-  constructor(x, y, z) {
-    this.x = x;
-    this.y = y;
-    this.z = z;
-  }
+    constructor(x, y, z) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+    }
 
-  mag() {
-    return Math.sqrt(this.x ** 2 + this.y ** 2 + this.z ** 2);
-  }
+    mag() {
+        return Math.sqrt(this.x ** 2 + this.y ** 2 + this.z ** 2);
+    }
+}
+
+class rotationMatrix {
+    // alpha, beta, gamma in radians
+    constructor(a, b, g) {
+        this.a = a;
+        this.b = b;
+        this.g = g;
+
+        this.ca = Math.cos(this.a);
+        this.cb = Math.cos(this.b);
+        this.cg = Math.cos(this.g);
+        this.sa = Math.sin(this.a);
+        this.sb = Math.sin(this.b);
+        this.sg = Math.sin(this.g);
+
+        // define each rotation matrix element
+        this.rm = [3][3];
+        this.rm[0][0] = ca * cb;
+        this.rm[0][1] = ca * sb * sg - sa * cg;
+        this.rm[0][2] = ca * sb * cg + sa * sg;
+        this.rm[1][0] = sa * cb;
+        this.rm[1][1] = sa * sb * sg + ca * cg;
+        this.rm[1][2] = sa * sb * cg - ca * sg;
+        this.rm[2][0] = -sb;
+        this.rm[2][1] = cb * sg;
+        this.rm[2][2] = cb * cg; 
+    }
+
+    // rotates v of type vector3
+    rotateVector3(v) {
+        v.x = this.rm[0][0] * v.x + this.rm[0][1] * v.y + this.rm[0][2] * v.z; 
+        v.y = this.rm[1][0] * v.x + this.rm[1][1] * v.y + this.rm[1][2] * v.z; 
+        v.z = this.rm[2][0] * v.x + this.rm[2][1] * v.y + this.rm[2][2] * v.z; 
+    }
 }
 
 // vars
