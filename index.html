@@ -36,23 +36,32 @@ class rotationMatrix {
         this.sg = Math.sin(this.g);
 
         // define each rotation matrix element
-        this.rm = [3][3];
-        this.rm[0][0] = ca * cb;
-        this.rm[0][1] = ca * sb * sg - sa * cg;
-        this.rm[0][2] = ca * sb * cg + sa * sg;
-        this.rm[1][0] = sa * cb;
-        this.rm[1][1] = sa * sb * sg + ca * cg;
-        this.rm[1][2] = sa * sb * cg - ca * sg;
-        this.rm[2][0] = -sb;
-        this.rm[2][1] = cb * sg;
-        this.rm[2][2] = cb * cg; 
+        this.rm = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
+
+        this.rm[0][0] = this.ca * this.cb;
+        this.rm[0][1] = (this.ca * this.sb * this.sg) - (this.sa * this.cg);
+        this.rm[0][2] = (this.ca * this.sb * this.cg) + (this.sa * this.sg);
+        this.rm[1][0] = this.sa * this.cb;
+        this.rm[1][1] = (this.sa * this.sb * this.sg) + (this.ca * this.cg);
+        this.rm[1][2] = (this.sa * this.sb * this.cg) - (this.ca * this.sg);
+        this.rm[2][0] = -this.sb;
+        this.rm[2][1] = this.cb * this.sg;
+        this.rm[2][2] = this.cb * this.cg; 
+
+        console.log(this.rm)
     }
 
     // rotates v of type vector3
     rotateVector3(v) {
-        v.x = this.rm[0][0] * v.x + this.rm[0][1] * v.y + this.rm[0][2] * v.z; 
-        v.y = this.rm[1][0] * v.x + this.rm[1][1] * v.y + this.rm[1][2] * v.z; 
-        v.z = this.rm[2][0] * v.x + this.rm[2][1] * v.y + this.rm[2][2] * v.z; 
+        var tmp = new vector3(0, 0, 0);
+
+        tmp.x = this.rm[0][0] * v.x + this.rm[0][1] * v.y + this.rm[0][2] * v.z; 
+        tmp.y = this.rm[1][0] * v.x + this.rm[1][1] * v.y + this.rm[1][2] * v.z; 
+        tmp.z = this.rm[2][0] * v.x + this.rm[2][1] * v.y + this.rm[2][2] * v.z; 
+
+        v.x = tmp.x;
+        v.y = tmp.y;
+        v.z = tmp.z;
     }
 }
 
@@ -106,9 +115,9 @@ function degreesToRads(data) {
 
 // trackRotation takes the gyro data in radians and interval (delta time in milliseconds)
 function trackRotation(g, dt) {
-    rot.x += g.beta * dt/1000;
-    rot.y += g.gamma * dt/1000;
-    rot.z += g.alpha * dt/1000;
+    rot.x += g.beta * dt * 0.001;
+    rot.y += g.gamma * dt * 0.001;
+    rot.z += g.alpha * dt * 0.001;
 }
 
 // get intitial gravity vector from average of stationary accelerometer samples
@@ -133,8 +142,10 @@ function calibrateGrav(accelData) {
 // rotates the gravity vector so we can track in which direction
 // we need to remove a vector of magnitude 9.81 to distinguish between
 // gravitational acceleration and linear acceleration (acceleration caused by movement)
-function rotateGravVector() {
-
+function rotateGravVector(g, dt) {
+    // rotate gravity vector in opposite direction of gyro rotation
+    var rm = new rotationMatrix(-g.alpha * dt * 0.001, -g.beta * dt * 0.001, -g.gamma * dt * 0.001);
+    rm.rotateVector3(grav);
 }
 
 function accelerometerUpdate(e) {
