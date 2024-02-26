@@ -74,6 +74,7 @@ class rotationMatrix {
 // vars
 var gravCalibrated = false;
 var grav = new vector3(0, 0, 0); // gravity vector contating measured magnitude
+var gravMag = 9.81; // maybe set in calibrate gravity??
 var gravDir = new vector3(0, 0, 0); // unit vector containing gravity direction
 var rot = new vector3(0, 0, 0); // rotation in rads
 var pos = new vector3(0, 0, 0); // position
@@ -147,6 +148,8 @@ function calibrateGrav(accelData) {
         gravDir.z = grav.z;
         gravDir.normalize();
 
+        gravMag = grav.mag();
+
         gravSamples = 0;
         gravCalibrated = true;
     }
@@ -169,6 +172,17 @@ function rotateGravDirVector(g, dt) {
 
     var rm = new rotationMatrix(-g.gamma * dt * 0.001, -g.beta * dt * 0.001, -g.alpha * dt * 0.001);
     rm.rotateVector3(gravDir);
+}
+
+// need to run rotateGravDirVector first
+function subtractGravFromAccel(data) {
+    var tmp = new vector3(0, 0, 0);
+    
+    tmp.x = data.x - gravDir.x * gravMag;
+    tmp.y = data.y - gravDir.y * gravMag;
+    tmp.z = data.z - gravDir.z * gravMag;
+
+    return tmp;
 }
 
 function accelerometerUpdate(e) {
@@ -194,7 +208,7 @@ function accelerometerUpdate(e) {
     }
 
     printData(ctx, "Calibrated Grav Vector: ", roundData(grav));
-    printData(ctx, "Grav Magnitude: ", grav.mag());
+    printData(ctx, "Grav Magnitude: ", gravMag);
     printData(ctx, "Grav Dir: ", roundData(gravDir));
     printData(ctx, "", "");
 
@@ -202,6 +216,7 @@ function accelerometerUpdate(e) {
 
     trackRotation(gyro, deltaTime);
     rotateGravDirVector(gyro, deltaTime);
+    accel = subtractGravFromAccel(accel);
 
     //The following two lines are to calculate tilt from grav vector.
     // var xPosition = Math.atan2(aY, aZ);
