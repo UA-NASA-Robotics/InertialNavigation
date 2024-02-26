@@ -73,11 +73,13 @@ class rotationMatrix {
 
 // vars
 var gravCalibrated = false;
+var samples = 0; // tracks number of IMU samples
 var grav = new vector3(0, 0, 0); // gravity vector contating measured magnitude
 var gravMag = 9.81; // maybe set in calibrate gravity??
 var gravDir = new vector3(0, 0, 0); // unit vector containing gravity direction
 var rot = new vector3(0, 0, 0); // rotation in rads
-var pos = new vector3(0, 0, 0); // position
+var vel = new vector3(0, 0, 0); // velocity in m/s
+var pos = new vector3(0, 0, 0); // position in m
 
 var stepPrintY = 40;
 var printY = stepPrintY;
@@ -123,9 +125,31 @@ function degreesToRads(data) {
 
 // trackRotation takes the gyro data in radians and interval (delta time in milliseconds)
 function trackRotation(g, dt) {
+    // simple integration of gyro velocity
     rot.x += g.beta * dt * 0.001;
     rot.y += g.gamma * dt * 0.001;
     rot.z += g.alpha * dt * 0.001;
+}
+
+// double integrates linear acceleration to track position
+function trackPosition(a, dt) {
+    // var prevVel = new vector3(vel.x, vel.y, vel.z);
+
+    // get velocity
+    if (Math.abs(a.x) > 0.1 + samples/100000) {     // stop trusting accel data as much as time goes on, need to recalibrate after a while
+        vel.x += a.x * dt * 0.001;
+        pos.x += vel.x * dt * 0.001;
+    }
+
+    if (Math.abs(a.y) > 0.1 + samples/100000) {
+        vel.y += a.y * dt * 0.001;
+        pos.y += vel.y * dt * 0.001;
+    }
+
+    if (Math.abs(a.z) > 0.1 + samples/100000) {
+        vel.z += a.z * dt * 0.001;
+        pos.z += vel.z * dt * 0.001;
+    }
 }
 
 // get intitial gravity vector from average of stationary accelerometer samples
@@ -178,14 +202,16 @@ function rotateGravDirVector(g, dt) {
 function subtractGravFromAccel(data) {
     var tmp = new vector3(0, 0, 0);
     
-    tmp.x = data.x - gravDir.x * gravMag;
-    tmp.y = data.y - gravDir.y * gravMag;
-    tmp.z = data.z - gravDir.z * gravMag;
+    tmp.x = data.x - (gravDir.x * gravMag);
+    tmp.y = data.y - (gravDir.y * gravMag);
+    tmp.z = data.z - (gravDir.z * gravMag);
 
     return tmp;
 }
 
 function accelerometerUpdate(e) {
+    samples++;
+
     ctx.clearRect(0, 0, cnvs.width, cnvs.height);
     printY = stepPrintY;
 
@@ -218,6 +244,8 @@ function accelerometerUpdate(e) {
     rotateGravDirVector(gyro, deltaTime);
     accel = subtractGravFromAccel(accel);
 
+    trackPosition(accel, deltaTime);
+
     //The following two lines are to calculate tilt from grav vector.
     // var xPosition = Math.atan2(aY, aZ);
     // var yPosition = Math.atan2(aX, aZ);
@@ -233,6 +261,14 @@ function accelerometerUpdate(e) {
     printData(ctx, "dt: ", deltaTime);
 
     printData(ctx, "Rotation: ", roundData(rot));
+    printData(ctx, "", "");
+
+    printData(ctx, "Velocity: ", roundData(vel));
+    printData(ctx, "Position: ", roundData(pos));
+    printData(ctx, "0.1 * Samples/1000: ", 0.1 + samples/100000);
+    printData(ctx, '', '');
+
+    printData(ctx, "not including grav: ", e.acceleration);
 }
 
 
