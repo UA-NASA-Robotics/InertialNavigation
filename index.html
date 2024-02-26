@@ -46,9 +46,7 @@ class rotationMatrix {
         this.rm[1][2] = (this.sa * this.sb * this.cg) - (this.ca * this.sg);
         this.rm[2][0] = -this.sb;
         this.rm[2][1] = this.cb * this.sg;
-        this.rm[2][2] = this.cb * this.cg; 
-
-        console.log(this.rm)
+        this.rm[2][2] = this.cb * this.cg;
     }
 
     // rotates v of type vector3
@@ -145,7 +143,16 @@ function calibrateGrav(accelData) {
 function rotateGravVector(g, dt) {
     // rotate gravity vector in opposite direction of gyro rotation
     // var rm = new rotationMatrix(-g.beta * dt * 0.001, -g.gamma * dt * 0.001, -g.alpha * dt * 0.001);
-    var rm = new rotationMatrix(-g.beta * dt * 0.001, 0, -g.alpha * dt * 0.001);
+    
+    // z to y
+    // var rm = new rotationMatrix(0, 0, -g.alpha * dt * 0.001);
+    // rm.rotateVector3(grav);
+
+    // z to x
+    // var rm = new rotationMatrix(0, -g.beta * dt * 0.001, 0);
+    // rm.rotateVector3(grav);
+
+    var rm = new rotationMatrix(-g.gamma * dt * 0.001, -g.beta * dt * 0.001, -g.alpha * dt * 0.001);
     rm.rotateVector3(grav);
 }
 
