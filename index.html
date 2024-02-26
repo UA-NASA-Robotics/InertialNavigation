@@ -144,7 +144,8 @@ function calibrateGrav(accelData) {
 // gravitational acceleration and linear acceleration (acceleration caused by movement)
 function rotateGravVector(g, dt) {
     // rotate gravity vector in opposite direction of gyro rotation
-    var rm = new rotationMatrix(-g.alpha * dt * 0.001, -g.beta * dt * 0.001, -g.gamma * dt * 0.001);
+    // var rm = new rotationMatrix(-g.beta * dt * 0.001, -g.gamma * dt * 0.001, -g.alpha * dt * 0.001);
+    var rm = new rotationMatrix(-g.beta * dt * 0.001, 0, -g.alpha * dt * 0.001);
     rm.rotateVector3(grav);
 }
 
