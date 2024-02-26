@@ -19,6 +19,14 @@ class vector3 {
     mag() {
         return Math.sqrt(this.x ** 2 + this.y ** 2 + this.z ** 2);
     }
+
+    normalize() {
+        var m = this.mag();
+
+        this.x /= m;
+        this.y /= m;
+        this.z /= m;
+    }
 }
 
 class rotationMatrix {
@@ -65,7 +73,8 @@ class rotationMatrix {
 
 // vars
 var gravCalibrated = false;
-var grav = new vector3(0, 0, 0); // gravity vector
+var grav = new vector3(0, 0, 0); // gravity vector contating measured magnitude
+var gravDir = new vector3(0, 0, 0); // unit vector containing gravity direction
 var rot = new vector3(0, 0, 0); // rotation in rads
 var pos = new vector3(0, 0, 0); // position
 
@@ -132,6 +141,12 @@ function calibrateGrav(accelData) {
     if (gravSamples < nGravSamples) {
         gravSamples++;
     } else {
+        // set gravity unit direction vector
+        gravDir.x = grav.x;
+        gravDir.y = grav.y;
+        gravDir.z = grav.z;
+        gravDir.normalize();
+
         gravSamples = 0;
         gravCalibrated = true;
     }
@@ -140,7 +155,7 @@ function calibrateGrav(accelData) {
 // rotates the gravity vector so we can track in which direction
 // we need to remove a vector of magnitude 9.81 to distinguish between
 // gravitational acceleration and linear acceleration (acceleration caused by movement)
-function rotateGravVector(g, dt) {
+function rotateGravDirVector(g, dt) {
     // rotate gravity vector in opposite direction of gyro rotation
     // var rm = new rotationMatrix(-g.beta * dt * 0.001, -g.gamma * dt * 0.001, -g.alpha * dt * 0.001);
     
@@ -153,7 +168,7 @@ function rotateGravVector(g, dt) {
     // rm.rotateVector3(grav);
 
     var rm = new rotationMatrix(-g.gamma * dt * 0.001, -g.beta * dt * 0.001, -g.alpha * dt * 0.001);
-    rm.rotateVector3(grav);
+    rm.rotateVector3(gravDir);
 }
 
 function accelerometerUpdate(e) {
@@ -178,13 +193,15 @@ function accelerometerUpdate(e) {
         return;
     }
 
-    printData(ctx, "Grav Vector: ", roundData(grav));
+    printData(ctx, "Calibrated Grav Vector: ", roundData(grav));
     printData(ctx, "Grav Magnitude: ", grav.mag());
+    printData(ctx, "Grav Dir: ", roundData(gravDir));
+    printData(ctx, "", "");
 
     gyro = degreesToRads(gyro);
 
     trackRotation(gyro, deltaTime);
-    rotateGravVector(gyro, deltaTime);
+    rotateGravDirVector(gyro, deltaTime);
 
     //The following two lines are to calculate tilt from grav vector.
     // var xPosition = Math.atan2(aY, aZ);
