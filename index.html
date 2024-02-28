@@ -80,6 +80,8 @@ var gravDir = new vector3(0, 0, 0); // unit vector containing gravity direction
 var rot = new vector3(0, 0, 0); // rotation in rads
 var vel = new vector3(0, 0, 0); // velocity in m/s
 var pos = new vector3(0, 0, 0); // position in m
+var deltaRM = new rotationMatrix(0, 0, 0);
+var currentRM = new rotationMatrix(0, 0, 0);
 
 var stepPrintY = 40;
 var printY = stepPrintY;
@@ -136,20 +138,20 @@ function trackPosition(a, dt) {
     // var prevVel = new vector3(vel.x, vel.y, vel.z);
 
     // get velocity
-    if (Math.abs(a.x) > 0.1 + samples/100000) {     // stop trusting accel data as much as time goes on, need to recalibrate after a while
+    // if (Math.abs(a.x) > 0.1 + samples/100000) {     // stop trusting accel data as much as time goes on, need to recalibrate after a while
         vel.x += a.x * dt * 0.001;
         pos.x += vel.x * dt * 0.001;
-    }
+    // }
 
-    if (Math.abs(a.y) > 0.1 + samples/100000) {
+    // if (Math.abs(a.y) > 0.1 + samples/100000) {
         vel.y += a.y * dt * 0.001;
         pos.y += vel.y * dt * 0.001;
-    }
+    // }
 
-    if (Math.abs(a.z) > 0.1 + samples/100000) {
+    // if (Math.abs(a.z) > 0.1 + samples/100000) {
         vel.z += a.z * dt * 0.001;
         pos.z += vel.z * dt * 0.001;
-    }
+    // }
 }
 
 // get intitial gravity vector from average of stationary accelerometer samples
@@ -183,6 +185,7 @@ function calibrateGrav(accelData) {
 // we need to remove a vector of magnitude 9.81 to distinguish between
 // gravitational acceleration and linear acceleration (acceleration caused by movement)
 function rotateGravDirVector(g, dt) {
+    deltaRM = new rotationMatrix(-g.gamma * dt * 0.001, -g.beta * dt * 0.001, -g.alpha * dt * 0.001);
     // rotate gravity vector in opposite direction of gyro rotation
     // var rm = new rotationMatrix(-g.beta * dt * 0.001, -g.gamma * dt * 0.001, -g.alpha * dt * 0.001);
     
@@ -194,8 +197,23 @@ function rotateGravDirVector(g, dt) {
     // var rm = new rotationMatrix(0, -g.beta * dt * 0.001, 0);
     // rm.rotateVector3(grav);
 
-    var rm = new rotationMatrix(-g.gamma * dt * 0.001, -g.beta * dt * 0.001, -g.alpha * dt * 0.001);
-    rm.rotateVector3(gravDir);
+    deltaRM.rotateVector3(gravDir);
+}
+
+function rotateAccelData(a) {
+    var tmp = new vector3(0, 0, 0);
+    tmp.x = a.x;
+    tmp.y = a.y;
+    tmp.z = a.z;
+
+    currentRM = new rotationMatrix(rot.y, rot.x, rot.z);
+    // rot.x += g.beta * dt * 0.001;
+    // rot.y += g.gamma * dt * 0.001;
+    // rot.z += g.alpha * dt * 0.001;
+    
+    currentRM.rotateVector3(tmp);
+
+    return tmp;
 }
 
 // need to run rotateGravDirVector first
@@ -217,7 +235,14 @@ function accelerometerUpdate(e) {
 
     // Note: these seem to only have 2 digits of precision
     // clone objects because event data read only 
-    var accel = e.accelerationIncludingGravity;
+    // var accel = e.accelerationIncludingGravity;
+    var accel = e.acceleration;
+    // var tmp = new vector3(0, 0, 0);
+    // tmp.x = accel.x;
+    // tmp.y = accel.y;
+    // tmp.z = accel.z + 0.19499;
+    // accel = tmp;
+
     var gyro = e.rotationRate;
     var deltaTime = e.interval; 
 
@@ -241,8 +266,13 @@ function accelerometerUpdate(e) {
     gyro = degreesToRads(gyro);
 
     trackRotation(gyro, deltaTime);
+
+    // rotate grav vector and subtract from accelerometer data
     rotateGravDirVector(gyro, deltaTime);
-    accel = subtractGravFromAccel(accel);
+    // accel = subtractGravFromAccel(accel);
+
+    // rotates the acceleration data into the x, y, z axis defined when calibrated gravity 
+    accel = rotateAccelData(accel);
 
     trackPosition(accel, deltaTime);
 
@@ -260,7 +290,7 @@ function accelerometerUpdate(e) {
 
     printData(ctx, "dt: ", deltaTime);
 
-    printData(ctx, "Rotation: ", roundData(rot));
+    // printData(ctx, "Rotation: ", roundData(rot));
     printData(ctx, "", "");
 
     printData(ctx, "Velocity: ", roundData(vel));
@@ -282,6 +312,15 @@ else {
     alert("accelerometer found");
     window.addEventListener("devicemotion", accelerometerUpdate, true);
 }
+
+// user can tap screen to set velocity data to 0
+window.addEventListener("touchstart", function(e) {
+    vel = new vector3(0, 0, 0);
+    pos = new vector3(0, 0, 0);
+
+    ctx.fillRect(0, 0, 250, 250);
+    // vel = new vector3(0, 0, 0);
+})
 
 </script>
 </html>
